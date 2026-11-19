@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 RoleType = Literal["PR_Comms", "Gov_Relations", "Stakeholder_Relations", "Executive_Strategy"]
 SourceType = Literal["news", "broadcast", "social", "legislative", "regulatory", "stakeholder"]
 Urgency = Literal["immediate", "today", "this_week", "monitor"]
+Jurisdiction = Literal["CA", "UK", "EU", "CN", "US", "GLOBAL"]
 
 
 # ---------- Profiles ----------
@@ -40,6 +41,14 @@ class RoleProfile(BaseModel):
     authority: str = Field(description="What they can do without sign-off, e.g. 'can issue holding statements'.")
     risk_tolerance: Literal["low", "medium", "high"] = "medium"
     relevance_threshold: float = 0.7
+    jurisdictions: list[Jurisdiction] = Field(default=["GLOBAL"])
+    language: str = Field(default="en", description="Language briefs are written in, e.g. 'en', 'fr'.")
+    timezone: str = Field(default="Europe/London", description="IANA zone, for digest timing.")
+    data_region: Literal["UK", "EU", "US", "CA"] = Field(default="UK", description="Where this user's context card is stored.")
+    context_source: Literal["email_and_calendar", "role_only"] = Field(
+        default="email_and_calendar",
+        description="'role_only' = no email-derived context (e.g. China-based staff, users who haven't opted in).",
+    )
 
 
 # ---------- Internal context (distilled from email/calendar; raw text never stored) ----------
@@ -66,8 +75,11 @@ class Signal(BaseModel):
     signal_id: str
     source_type: SourceType
     source_name: str = Field(description="Outlet, chamber, regulator or platform.")
+    jurisdiction: Jurisdiction = "GLOBAL"
+    language: str = "en"
     headline: str
-    excerpt: str = Field(description="Licensed excerpt or abstract, not necessarily full text.")
+    excerpt: str = Field(description="Licensed excerpt or abstract, original language.")
+    excerpt_en: str | None = Field(default=None, description="English translation, if excerpt is not English.")
     url: str
     published_at: datetime
     author: str | None = None
@@ -116,5 +128,6 @@ class Brief(BaseModel):
     possible_registrable_lobbying: bool = Field(
         default=False, description="True if the draft is outreach to an official that may be registrable."
     )
+    lobbying_jurisdiction: Jurisdiction | None = None
     citations: list[Citation] = Field(description="Every factual or personal-context claim, with its sources.")
     confidence: Literal["low", "medium", "high"]

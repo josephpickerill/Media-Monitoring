@@ -3,7 +3,7 @@
 Fill these in. Claude Code reads this file, so your answers flow straight into the build.
 
 ## 1. Workspace ecosystem
-- [ ] Microsoft 365 (Outlook, Teams, Entra ID)  ← build plan assumes this by default
+- [x] Microsoft 365 (Outlook, Teams, Entra ID)
 - [ ] Google Workspace (Gmail, Chat, Google SSO)
 - [ ] Both (multi-tenant product sold to other organisations)
 
@@ -14,11 +14,14 @@ Fill these in. Claude Code reads this file, so your answers flow straight into t
 Recommendation: build single-tenant with a `tenant_id` column everywhere, so multi-tenant is a later switch, not a rewrite.
 
 ## 3. Jurisdictions for government relations
-- [ ] UK (Hansard, Parliament Bills API, legislation.gov.uk, GOV.UK search/feeds for consultations & policy papers)
-- [ ] EU (EUR-Lex, Commission "Have your say", Parliament)
-- [ ] US federal (Congress.gov API, Federal Register API, Regulations.gov)
-- [ ] Canada (LEGISinfo, OpenParliament)
+- [x] Canada
+- [x] UK
+- [x] EU
+- [x] China
+- [x] USA
 - [ ] Devolved / state / provincial: ______
+
+Sources and rules for each are in `docs/JURISDICTIONS.md`. Build order: UK → US → Canada → EU → China (from easiest open data to hardest).
 
 ## 4. Media source (licensed)
 - [ ] Existing contract with Meltwater / Cision / Agility / Muck Rack / Signal AI → use its API

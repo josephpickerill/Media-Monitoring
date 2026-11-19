@@ -51,8 +51,10 @@ API schemas. Add a seed script that loads the pilot users from docs/DECISIONS.md
 ```
 Implement source adapters under src/briefing/sources/, each implementing a SourceAdapter protocol
 (fetch_since(cursor) -> list[Signal], idempotent on source_id, cursor persisted in source_cursors).
-Start with: (1) <your news API from DECISIONS.md §4>, (2) <jurisdiction 1 legislative API>,
-(3) <jurisdiction 1 government/regulator feed>. Read each API's official docs before writing
+Start with: (1) <your news API from DECISIONS.md §4>, (2) UK Parliament Bills + Hansard APIs,
+(3) GOV.UK Search API. Then follow docs/JURISDICTIONS.md in the order UK → US → Canada → EU →
+China, one PR per jurisdiction. Non-English signals get excerpt_en via Claude Haiku 5.5 at
+ingestion. Add a source-health table (last success, signals/day) and alert on silent adapters. Read each API's official docs before writing
 code; don't guess endpoints. Store licensed excerpt + metadata, not full text unless
 LICENCE_ALLOWS_FULLTEXT is set. Add entity extraction (people, orgs, bills, committees, places)
 using Claude Haiku 5.5 with structured output, cached per signal. Add story clustering: embed
@@ -68,6 +70,7 @@ recorded-response tests (vcrpy or saved JSON fixtures) for every adapter.
 ## Phase 3 — Internal context: Work Context Cards
 
 ```
+Read docs/JURISDICTIONS.md (cross-cutting section and China section) first.
 Implement Microsoft Graph integration with delegated OAuth (MSAL, auth code flow) and per-user
 opt-in. Scopes: Mail.Read, Calendars.Read, offline_access, User.Read. Store refresh tokens
 encrypted (Fernet key from env for now; Key Vault later). Use Graph delta queries for mail and
@@ -77,7 +80,8 @@ Then distil a WorkContextCard (schema in src/briefing/schemas.py) with Claude Op
 structured output; every card item must carry the Graph message/event IDs it came from. Never
 persist message bodies; add a test that fails if a body string appears in the database after a
 distillation run. Add GET/PUT /me/context-card so users can view and edit their card; user edits
-are pinned and survive re-distillation. Refresh weekly, plus immediately when a delta brings a
+are pinned and survive re-distillation. Users with context_source="role_only" (China-based staff,
+anyone not opted in) are never connected to Graph. Store each card in the user's data_region. Refresh weekly, plus immediately when a delta brings a
 new thread with a tracked stakeholder.
 ```
 
@@ -106,8 +110,8 @@ that prints the funnel trace.
 ```
 Wire src/briefing/synthesis.py into the pipeline. Urgency "immediate" → synthesise now and post a
 Teams adaptive card via a bot (Bot Framework / Teams app) or Graph chat message; everything else →
-nightly batch using the Message Batches API, then one email digest per user at their configured
-time. Validate that every claim in a brief cites a signal_id or card item id that exists and
+nightly batch using the Message Batches API, then one email digest per user at 07:00 in their
+own timezone (users span Canada, UK, EU, US and China). Validate that every claim in a brief cites a signal_id or card item id that exists and
 belongs to that user; drop and log any brief that fails. Add buttons: Open draft in Outlook
 (Graph create draft, Mail.ReadWrite, never send), Useful, Not relevant, Wrong reason, Already
 knew → POST /feedback. Build a minimal web inbox (FastAPI + HTMX is fine) listing briefs with
