@@ -15,7 +15,7 @@ One deployment serves the whole organisation; PR, Government Relations, Stakehol
 | `CLAUDE.md` | Standing instructions Claude Code reads every session. Architecture, rules, guardrails. |
 | `docs/ARCHITECTURE.md` | The system design, and where it differs from the earlier thread's advice (and why). |
 | `docs/BUILD_PLAN.md` | **Start here.** Phase 0–7, each with a copy-paste prompt for Claude Code and a "done when" checklist. |
-| `docs/JURISDICTIONS.md` | Sources and legal rules for Canada, UK, EU, China and USA. |
+| `docs/JURISDICTIONS.md` | Sources and legal rules for Canada, UK, EU and USA. China (coverage about China, SCMP first) is in `docs/DECISIONS.md` §3a. |
 | `docs/GOVERNANCE.md` | Privacy, legal and licensing work you must do in parallel. Not optional for an email-reading enterprise tool. |
 | `docs/DECISIONS.md` | The decisions only you can make, to fill in before Phase 1. |
 | `src/briefing/schemas.py` | Data models: org profile, role profile, work-context card, signal, brief. |

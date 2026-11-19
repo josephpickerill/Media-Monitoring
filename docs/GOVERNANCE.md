@@ -2,7 +2,7 @@
 
 Run this alongside the build. An enterprise customer, or your own CISO / DPO, will ask about every item here before it goes past a pilot. This is a checklist, not legal advice; get your DPO and counsel to sign off.
 
-Jurisdiction-specific rules (Canada incl. Quebec Law 25, UK, EU incl. AI Act, China PIPL, US state laws) are in `docs/JURISDICTIONS.md`.
+Jurisdiction-specific rules (Canada incl. Quebec Law 25, UK, EU incl. AI Act, US state laws) are in `docs/JURISDICTIONS.md`. China is in scope as media coverage only (`docs/DECISIONS.md` §3a).
 
 ## 1. Employee email processing
 - [ ] **DPIA** (UK/EU GDPR Art. 35): systematic processing of employee communications with AI is a textbook DPIA trigger.

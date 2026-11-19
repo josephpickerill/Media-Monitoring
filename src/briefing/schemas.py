@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 RoleType = Literal["PR_Comms", "Gov_Relations", "Stakeholder_Relations", "Executive_Strategy"]
 SourceType = Literal["news", "broadcast", "social", "legislative", "regulatory", "stakeholder"]
 Urgency = Literal["immediate", "today", "this_week", "monitor"]
-Jurisdiction = Literal["CA", "UK", "EU", "CN", "US", "GLOBAL"]
+Jurisdiction = Literal["CA", "UK", "EU", "US", "GLOBAL"]
 
 
 # ---------- Profiles ----------
@@ -47,7 +47,7 @@ class RoleProfile(BaseModel):
     data_region: Literal["UK", "EU", "US", "CA"] = Field(default="UK", description="Where this user's context card is stored.")
     context_source: Literal["email_and_calendar", "role_only"] = Field(
         default="email_and_calendar",
-        description="'role_only' = no email-derived context (e.g. China-based staff, users who haven't opted in).",
+        description="'role_only' = no email-derived context (users who haven't opted in).",
     )
 
 
@@ -84,6 +84,7 @@ class Signal(BaseModel):
     published_at: datetime
     author: str | None = None
     entities: list[str] = []
+    topics: list[str] = Field(default=[], description="Cross-source tags, e.g. 'china'.")
     reach: int | None = None
 
 

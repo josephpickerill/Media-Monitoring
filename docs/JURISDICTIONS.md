@@ -1,4 +1,4 @@
-# Jurisdictions: Canada, UK, EU, China, USA
+# Jurisdictions: Canada, UK, EU, USA (+ coverage about China)
 
 Each jurisdiction is a set of **source adapters** (see ARCHITECTURE.md §1) plus **legal rules** that apply to processing and outreach there. Before writing any adapter, Claude Code must read that source's current official API documentation and terms of use. The lists below say where to look; they don't describe exact endpoints.
 
@@ -65,36 +65,17 @@ All adapters produce `Signal` records with `jurisdiction`, `language` and, for n
 - Data residency: EU users' context cards stored in EU region; check Claude platform/region options for EU processing (DECISIONS.md §5).
 - EU Transparency Register: flag outreach drafts to Commission/Parliament officials.
 
-## China  (hardest: read this section fully before building)
+## China: coverage about China
 
-**Monitoring China from outside China: feasible.** Adapters for public Chinese sources, translated into English summaries:
-
-| Need | Source |
-|---|---|
-| National laws & draft laws open for comment | NPC national laws database (flk.npc.gov.cn); NPC draft-law comment notices |
-| State Council policy documents | gov.cn policy library |
-| Regulators | CAC (data/cyber), MIIT, MOFCOM (trade, export controls, unreliable entity list), SAMR (competition), NDRC, CSRC, PBOC, as relevant |
-| Standards | TC260 and national standards drafts (for data/AI/tech sectors) |
-| State media | Xinhua, People's Daily, CGTN, Global Times (government-line signals) |
-| Commercial & social media | Use a licensed vendor with China coverage (e.g. Meltwater, Wisers) rather than scraping Weibo/WeChat |
-
-Most of these sources have no stable official API. Adapters will be RSS where available, otherwise polite scrapers, which break when sites change. Each needs a health check and an alert when it stops yielding. Check each site's terms first.
-
-**Processing China-based staff email: don't, at least initially.**
-- **Claude is not available in mainland China**, and Anthropic's terms restrict use by entities controlled from China. The service must run and be contracted outside China. Confirm your organisation's position with Anthropic and counsel.
-- Microsoft 365 in mainland China is usually a **separate 21Vianet-operated tenant** with its own Graph endpoint. It's a different integration and likely out of scope.
-- **PIPL** requires a lawful cross-border transfer mechanism (CAC standard contract, certification or security assessment) plus separate consent to export personal information. Employee email exported for AI processing is squarely in scope. The **Data Security Law** may also apply to "important data".
-- Recommendation: China-based staff receive briefs driven by their **role profile only**, with no email-derived context card, until counsel signs off on a transfer mechanism. Implement as `context_source = "role_only"` on the RoleProfile.
-
-**Outreach:** drafts aimed at Chinese officials or state bodies should be flagged for review by the China/legal lead, not just the user.
+Scope, sources (South China Morning Post first) and triggers are in `docs/DECISIONS.md` §3a. China is handled as **media coverage**, not as a government-relations jurisdiction: no Chinese official sources, no China-based mailboxes, and no PIPL data-export work. China stories reach users through the media adapters plus a `china` topic tag applied to signals from all sources, including UK/EU/US/Canadian legislative items about China.
 
 ---
 
 ## Cross-cutting implications for the build
 
-1. `Signal` gains `jurisdiction`, `language`, `excerpt_en`. `RoleProfile` gains `jurisdictions`, `language` (brief language), `timezone`, `context_source` (`email_and_calendar` | `role_only`).
+1. `Signal` gains `jurisdiction`, `language`, `excerpt_en`. `RoleProfile` gains `jurisdictions`, `language` (brief language), `timezone`, `context_source` (`email_and_calendar` | `role_only`, for users who haven't opted in).
 2. **Translation:** non-English excerpts translated by Claude Haiku 5.5 at ingestion (cached); synthesis sees the English excerpt plus the original.
 3. **Data residency by user region:** store context cards in a region matching the user (UK, EU, US, Canada). Design the `work_context_cards` table to be partitionable by region from Phase 1.
-4. **Digest timing by time zone:** a morning digest at 07:00 local means five delivery windows.
+4. **Digest timing by time zone:** a morning digest at 07:00 local means several delivery windows (North America and Europe).
 5. **Per-jurisdiction outreach flag:** `possible_registrable_lobbying` plus the jurisdiction, so the UI can say *which* register might apply.
 6. **Source health dashboard:** with ~40 adapters, something will always be broken. Track last successful fetch and signals/day per adapter.
