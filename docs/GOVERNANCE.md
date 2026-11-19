@@ -16,8 +16,8 @@ Jurisdiction-specific rules (Canada incl. Quebec Law 25, UK, EU incl. AI Act, US
 
 ## 2. AI provider terms
 - [ ] Commercial/enterprise API terms: inputs not used for training (default for Anthropic's commercial API).
-- [ ] **Zero data retention** arrangement if required (ask Anthropic, or use Foundry/Bedrock/Vertex with the equivalent setting). Note some features (e.g. message threads) aren't ZDR-eligible, so stick to plain Messages + Batches.
-- [ ] **Data residency:** pick the region/platform accordingly (`inference_geo` on the Anthropic API, or the cloud region on Foundry/Bedrock/Vertex).
+- [ ] **Data retention and processing terms for Claude on Microsoft Foundry:** confirm with Microsoft/Anthropic what's logged or retained, for how long, and which terms apply to "Hosted on Azure" vs "Hosted on Anthropic" deployments. Use plain Messages requests only (no stateful features).
+- [ ] **Data residency:** set by the Foundry deployment region and hosting type (DECISIONS.md §5).
 - [ ] Sub-processor list updated.
 
 ## 3. Media and content licensing

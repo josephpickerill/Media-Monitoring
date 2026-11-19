@@ -24,13 +24,15 @@ Python 3.12, uv, FastAPI, SQLAlchemy 2 + Alembic, PostgreSQL 16 + pgvector, pyte
 9. **Log every LLM call** to `llm_calls`: model, prompt version, input/output tokens, cost, latency, tenant, user.
 
 ## Claude API conventions
+- Platform: **Claude on Microsoft Foundry** (docs/DECISIONS.md §5). Client: `anthropic.AnthropicFoundry(api_key=..., resource=...)` built once in `briefing/llm.py`; nothing else constructs a client. Model IDs are the Foundry deployment names, set in settings (default to the IDs below).
 - SDK: `anthropic` (Python). Synthesis and card distillation: `claude-opus-5-5`. Triage and entity extraction: `claude-haiku-5-5`. Use only these exact model IDs.
-- Structured output via `client.beta.messages.parse(..., output_format=PydanticModel)`; read `response.parsed_output`. Always check `stop_reason` (`refusal`, `max_tokens`) first.
-- On `claude-opus-5-5` requests, enable server-side refusal fallback: `betas=["server-side-fallback-2026-07-01"]`, `fallbacks="default"`.
+- Structured output via `client.messages.parse(..., output_format=PydanticModel)`; read `response.parsed_output`. Always check `stop_reason` (`refusal`, `max_tokens`) first.
+- Server-side refusal `fallbacks` are **not available on Foundry**: don't send them. Log refusals to `llm_calls` and skip. (If refusal rates matter later, add the SDK's client-side `BetaRefusalFallbackMiddleware` after checking its current docs.)
 - Don't send `temperature`/`top_p`/`top_k` (rejected on current models) or `thinking: {"type": "disabled"}` / `budget_tokens` (rejected on Opus 5.5). Control depth with `output_config={"effort": "low"|"medium"|"high"}`.
 - No assistant prefill. No forced `tool_choice` (`any`/`tool`).
 - Put stable content (system prompt, org profile, role guidance) first with `cache_control`; volatile content (story, card) last.
-- Overnight digests use the Message Batches API.
+- The Message Batches API is **not available on Foundry**. Overnight digests run as ordinary requests through a bounded concurrent worker pool with retry/backoff on 429/5xx. Prompt caching works on Foundry; use it.
+- Data residency comes from the Foundry deployment region; don't send `inference_geo` (not supported on Foundry).
 - Anthropic has no embeddings endpoint; embeddings come from the provider configured in settings.
 - When unsure of an SDK signature, check the official SDK docs rather than guessing.
 

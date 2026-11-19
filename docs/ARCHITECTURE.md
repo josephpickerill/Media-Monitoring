@@ -43,11 +43,11 @@ The earlier thread ran an LLM call per signal × per user. At 5,000 signals/day 
 | C. Triage | Claude Haiku 5.5, one call per (story, candidate user), returns score 0–1 + one-line reason + urgency | low | Decides "brief / digest / ignore". |
 | D. Synthesis | Claude Opus 5.5 (structured output), only for stories that pass C | the real spend | Writes what / why / do + draft. |
 
-Urgency routing: `immediate` → Teams card now; everything else → batched into the morning digest, generated with the **Message Batches API** (50% cheaper, async is fine overnight).
+Urgency routing: `immediate` → Teams card now; everything else → into the morning digest, generated overnight by a bounded worker pool. (On the Anthropic API you'd use the Message Batches API for 50% off; it isn't offered on Microsoft Foundry, which we chose. See DECISIONS.md §5.)
 
 ### 5. Synthesis
 See `src/briefing/synthesis.py`. Key rules:
-- Structured output (Pydantic) via `client.beta.messages.parse`, with server-side refusal fallback enabled.
+- Structured output (Pydantic) via `client.messages.parse` on an `AnthropicFoundry` client. Refusals are logged and skipped.
 - Every factual claim cites a `signal_id`; every "why it matters" claim cites the card item it relies on. Unciteable claims are dropped. This is what stops it inventing meetings.
 - The model never sees another user's card. Org-level context is shared; personal context is not.
 - Org profile + role guidance go first in the prompt and are prompt-cached; the story and card go last.
@@ -66,6 +66,7 @@ See `src/briefing/synthesis.py`. Key rules:
 | Jobs | Postgres-backed queue (Procrastinate) or Celery + Redis to start; Temporal if workflows get complex | Don't take on Temporal until you need durable multi-step sagas. |
 | Database | PostgreSQL + pgvector, Row-Level Security on `tenant_id` and `user_id` | One store for relational, audit and vectors. |
 | Auth | Entra ID (OIDC) for users; Graph via **delegated** permissions with per-user opt-in | Application-wide `Mail.Read` reads every mailbox incl. the CEO's; security teams rightly refuse it. If you must use app permissions, scope them with Exchange RBAC for Applications to a pilot group. |
+| LLM platform | Claude on Microsoft Foundry | Billed on the Microsoft agreement, Entra-aligned, region chosen per deployment. |
 | LLM | Claude Opus 5.5 (synthesis, card distillation), Claude Haiku 5.5 (triage) | Opus 5.5 is the current default; Haiku is ~40x cheaper for high-volume yes/no work. |
 | Hosting | Your cloud (Azure fits M365 shops). Containers + managed Postgres. | Keeps email-derived data in your estate. |
 | Observability | OpenTelemetry + structured logs; LLM call log with prompt hash, model, tokens, cost, latency | You will need cost per user per day and an audit trail. |

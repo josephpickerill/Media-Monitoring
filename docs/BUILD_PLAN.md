@@ -111,7 +111,7 @@ that prints the funnel trace.
 ```
 Wire src/briefing/synthesis.py into the pipeline. Urgency "immediate" → synthesise now and post a
 Teams adaptive card via a bot (Bot Framework / Teams app) or Graph chat message; everything else →
-nightly batch using the Message Batches API, then one email digest per user at 07:00 in their
+nightly job (bounded concurrent worker pool, retries on 429/5xx; no Batches API on Foundry), then one email digest per user at 07:00 in their
 own timezone (users span Canada, the US, the UK and the EU). Validate that every claim in a brief cites a signal_id or card item id that exists and
 belongs to that user; drop and log any brief that fails. Add buttons: Open draft in Outlook
 (Graph create draft, Mail.ReadWrite, never send), Useful, Not relevant, Wrong reason, Already
@@ -158,6 +158,6 @@ data-subject export and delete endpoints; load test at 10x pilot volume.
 
 Order of magnitude only; measure in Phase 5 from the `llm_calls` table.
 - Triage (Haiku 5.5): thousands of short calls/day, a few dollars/day.
-- Synthesis (Opus 5.5): ~5–10 briefs/user/day × 20 users, mostly via Batches at 50% off, roughly tens of dollars/day.
+- Synthesis (Opus 5.5): ~5–10 briefs/user/day × 20 users, at full price (no batch discount on Foundry), roughly tens of dollars/day; prompt caching of the org profile cuts the input cost.
 - Card distillation: weekly, small.
 - The licensed media feed will usually cost more than the AI.

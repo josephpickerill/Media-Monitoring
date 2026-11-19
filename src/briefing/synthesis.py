@@ -50,7 +50,7 @@ def _role_guidance(role: RoleProfile) -> str:
 
 
 def generate_brief(
-    client: anthropic.Anthropic,
+    client: anthropic.AnthropicFoundry,
     org: OrgProfile,
     role: RoleProfile,
     card: WorkContextCard,
@@ -65,11 +65,10 @@ def generate_brief(
     sources = json.dumps([s.model_dump(mode="json") for s in story.signals], indent=2)
     work_context = card.model_dump_json(indent=2)
 
-    response = client.beta.messages.parse(
+    # Claude on Microsoft Foundry: no server-side refusal fallback, so a refusal is logged upstream and skipped.
+    response = client.messages.parse(
         model=SYNTHESIS_MODEL,
         max_tokens=16000,
-        betas=["server-side-fallback-2026-07-01"],
-        fallbacks="default",
         output_config={"effort": "medium"},
         # Stable, shared content first and cached; per-user and per-story content last.
         system=[
